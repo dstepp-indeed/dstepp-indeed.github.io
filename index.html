@@ -3,50 +3,6 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-
-    <!--
-    <meta
-      http-equiv="Content-Security-Policy"
-      content="
-            default-src 'none';
-            
-            style-src
-                'unsafe-inline'
-                'self'
-                https://prod.statics.indeed.com;
-
-            font-src https://prod.statics.indeed.com;
-
-            script-src
-                'unsafe-inline'
-                https://sdk.indeed.com
-                https://d3oklwo3y1bx83.cloudfront.net;
-
-            connect-src
-                ws://127.0.0.1:8080//ws
-                ws://localhost:8080//ws
-                https://sdk.indeed.com/api
-                https://sdk.indeed.com/api/next
-                https://apis.indeed.com/graphql
-                https://d3oklwo3y1bx83.cloudfront.net;
-        "
-    />
-    -->
-
-    <style>
-        html {
-            font-family: Helvetica, sans-serif;
-            font-size: 12pt;
-        }
-
-        body {
-            background: #eee;
-        }
-
-        header {
-            border-bottom: 1px solid black;
-        }
-    </style>
     <title>dstepp Indeed SDK test page</title>
   </head>
 
@@ -55,34 +11,7 @@
       <h1>dstepp's pretend ATS</h1>
     </header>
 
-    <main>
-      <h2>Pretend Job, id: Job12345</h2>
-      <p>
-        In this example we're showing how to load the Indeed Scout HelloWorld
-        module, and pass context from the ATS into Indeed Scout
-      </p>
-    </main>
-
     <aside id="scout"></aside>
     <script src="https://sdk.indeed.com/js/preview/sdk.js"></script>
-
-    <script>
-      (async () => {
-        await window.Indeed.init();
-
-        const { ScoutPlatform } = await window.Indeed.elements.load("indeed-scout");
-
-        ScoutPlatform.create(document.getElementById("scout"), {
-          context: {
-            identifiers: [
-              {
-                id: "Job12345",
-                type: "Job",
-              },
-            ],
-          },
-        });
-      })();
-    </script>
   </body>
 </html>
