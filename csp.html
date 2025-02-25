@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="
+        default-src 'none';
+      
+        style-src
+            'self'
+            'unsafe-inline'
+            https://prod.statics.indeed.com;
+
+        font-src
+            'self'
+            https://prod.statics.indeed.com;
+
+        script-src
+            'self'
+            'unsafe-inline'
+            https://sdk.indeed.com
+            https://*.hobo-local.qa.indeed.net;
+
+        connect-src
+            ws://127.0.0.1:8080//ws
+            ws://localhost:8080//ws
+            https://sdk.indeed.com
+            https://apis.indeed.com/graphql
+
+            ws://one-host-client:8080
+            http://one-host-client:8080
+            https://*.hobo-local.qa.indeed.net;
+      " />
+
+    <title>dstepp Indeed SDK test page</title>
+  </head>
+
+  <body>
+    <header>
+      <h1>dstepp's pretend ATS (CSP) Hello World</h1>
+    </header>
+
+    <aside id="hello"></aside>
+    <script src="https://sdk.indeed.com/js/preview/sdk.js"></script>
+
+    <script>
+      (async () => {
+        await window.Indeed.init();
+
+        const { HelloSdk } = await window.Indeed.elements.load("dstepp-backstage-test");
+
+        const hello = HelloSdk.create();
+        hello.mount(document.getElementById("hello"));
+      })();
+    </script>
+  </body>
+</html>
