@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta
+      http-equiv="Content-Security-Policy-Report-Only"
+      content="
+        script-src 'self' *.indeed.com *.indeed.tech *.indeed.net d3oklwo3y1bx83.cloudfront.net d9zgl8ybjt160.cloudfront.net d3fw5vlhllyvee.cloudfront.net;
+        connect-src 'self' *.indeed.com *.indeed.tech *.indeed.net d3oklwo3y1bx83.cloudfront.net d9zgl8ybjt160.cloudfront.net d3fw5vlhllyvee.cloudfront.net;
+        base-uri 'none';
+        form-action 'self' *.indeed.com *.indeed.net *.indeed.tech;
+        frame-ancestors 'none';
+        object-src 'none';
+        report-uri https://browser-intake-datadoghq.com/api/v2/logs?dd-api-key=pub1f230191f4d01b084bff5e9fe35174c2&dd-evp-origin=content-security-policy&ddsource=csp-report
+      " />
+
+    <title>dstepp Indeed SDK test page</title>
+  </head>
+
+  <body>
+    <header>
+      <h1>dstepp's pretend ATS (CSP) Hello World</h1>
+    </header>
+
+    <aside id="hello"></aside>
+    <script src="https://sdk.indeed.com/js/preview/sdk.js"></script>
+
+    <script>
+      (async () => {
+        await window.Indeed.init();
+
+        const { ScoutHelloWorld } = await window.Indeed.elements.load("scout-ui-platform");
+
+        const hello = HelloSdk.create();
+        hello.mount(document.getElementById("hello"));
+      })();
+    </script>
+  </body>
+</html>
