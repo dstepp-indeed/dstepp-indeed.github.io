@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
 
     <meta
-      http-equiv="Content-Security-Policy-Report-Only"
+      http-equiv="Content-Security-Policy"
       content="
         script-src 'self' *.indeed.com *.indeed.tech *.indeed.net d3oklwo3y1bx83.cloudfront.net d9zgl8ybjt160.cloudfront.net d3fw5vlhllyvee.cloudfront.net;
         connect-src 'self' *.indeed.com *.indeed.tech *.indeed.net d3oklwo3y1bx83.cloudfront.net d9zgl8ybjt160.cloudfront.net d3fw5vlhllyvee.cloudfront.net;
@@ -32,7 +32,7 @@
 
         const { ScoutHelloWorld } = await window.Indeed.elements.load("scout-ui-platform");
 
-        const hello = HelloSdk.create();
+        const hello = ScoutHelloWorld.create();
         hello.mount(document.getElementById("hello"));
       })();
     </script>
