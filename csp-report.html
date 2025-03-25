@@ -6,7 +6,7 @@
     <meta
       http-equiv="Content-Security-Policy"
       content="
-        script-src 'self' *.indeed.com *.indeed.tech *.indeed.net d3oklwo3y1bx83.cloudfront.net d9zgl8ybjt160.cloudfront.net d3fw5vlhllyvee.cloudfront.net;
+        script-src 'self' *.indeed.com *.indeed.tech *.indeed.net d3oklwo3y1bx83.cloudfront.net d9zgl8ybjt160.cloudfront.net d3fw5vlhllyvee.cloudfront.net 'nonce-abc123';
         connect-src 'self' *.indeed.com *.indeed.tech *.indeed.net d3oklwo3y1bx83.cloudfront.net d9zgl8ybjt160.cloudfront.net d3fw5vlhllyvee.cloudfront.net;
         base-uri 'none';
         form-action 'self' *.indeed.com *.indeed.net *.indeed.tech;
@@ -26,7 +26,8 @@
     <aside id="hello"></aside>
     <script src="https://sdk.indeed.com/js/preview/sdk.js"></script>
 
-    <script>
+    <script nonce="abc123">
+      // the above nonce is not secure, just for demonstration purposes
       (async () => {
         await window.Indeed.init();
 
