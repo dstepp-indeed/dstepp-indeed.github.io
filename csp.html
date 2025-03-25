@@ -10,7 +10,6 @@
       
         style-src
             'self'
-            'unsafe-inline'
             https://prod.statics.indeed.com;
 
         font-src
@@ -19,18 +18,18 @@
 
         script-src
             'self'
-            'unsafe-inline'
+            'nonce-init'
             https://sdk.indeed.com
 
             https://*.sandbox.qa.indeed.net
             https://*.hobo-local.qa.indeed.net;
 
         connect-src
-            ws://127.0.0.1:8080//ws
-            ws://localhost:8080//ws
             https://sdk.indeed.com
             https://apis.indeed.com/graphql
 
+            ws://127.0.0.1:8080//ws
+            ws://localhost:8080//ws
             ws://one-host-client:8080
             http://one-host-client:8080
             https://one-host-client:8080
@@ -49,7 +48,7 @@
     <aside id="hello"></aside>
     <script src="https://sdk.indeed.com/js/preview/sdk.js"></script>
 
-    <script>
+    <script nonce="init">
       (async () => {
         await window.Indeed.init();
 
