@@ -10,6 +10,7 @@
       
         style-src
             'self'
+            'nonce-dstepp-12345'
             https://prod.statics.indeed.com;
 
         font-src
@@ -18,7 +19,7 @@
 
         script-src
             'self'
-            'nonce-init'
+            'nonce-dstepp-12345'
             https://sdk.indeed.com
 
             https://*.sandbox.qa.indeed.net
@@ -50,7 +51,9 @@
 
     <script nonce="init">
       (async () => {
-        await window.Indeed.init();
+        await window.Indeed.init({
+          nonce: 'dstepp-12345'
+        });
 
         const { HelloSdk } = await window.Indeed.elements.load("dstepp-backstage-test");
 
