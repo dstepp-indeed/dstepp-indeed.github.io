@@ -11,7 +11,8 @@
         style-src
             'self'
             'nonce-dstepp-12345'
-            https://prod.statics.indeed.com;
+            https://prod.statics.indeed.com
+            https://d9zgl8ybjt160.cloudfront.net;
 
         font-src
             'self'
@@ -21,19 +22,19 @@
             'self'
             'nonce-dstepp-12345'
             https://sdk.indeed.com
-
+            https://d9zgl8ybjt160.cloudfront.net
             https://*.sandbox.qa.indeed.net
             https://*.hobo-local.qa.indeed.net;
 
         connect-src
             https://sdk.indeed.com
             https://apis.indeed.com/graphql
-
             ws://127.0.0.1:8080//ws
             ws://localhost:8080//ws
             ws://one-host-client:8080
             http://one-host-client:8080
             https://one-host-client:8080
+            https://d9zgl8ybjt160.cloudfront.net
             https://*.sandbox.qa.indeed.net
             https://*.hobo-local.qa.indeed.net;
       " />
