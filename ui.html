@@ -1,0 +1,203 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>dstepp Indeed SDK test page</title>
+
+    <script type="text/javascript">
+      (() => {
+        const params = new URLSearchParams(location.search);
+        const DEFAULT_SDK_URL = params.get('sdkurl') || 'https://sdk.indeed.com/js/preview/sdk.js';
+        const DEFAULT_SDK_SCOPE = params.get('scope') || 'dstepp-backstage-test';
+        const DEFAULT_SDK_MODULE = params.get('module') || 'HelloSdk';
+        const DEFAULT_SDK_MODULE_PROPS = params.get('props') ?? undefined;
+
+        const alertStatus = (message) => {
+          document.getElementById('alert').innerHTML = message;
+        };
+
+        const createOption = (value, text) => {
+          const option = document.createElement('option');
+          option.value = value;
+          option.textContent = text || value;
+          return option;
+        };
+
+        window.addEventListener('load', () => {
+          let initialized = false;
+          
+          const loadButton = document.getElementById('loadsdk');
+          const loadSdkUrlBox = document.getElementById('loadsdkurl');
+          const loadDefaultButton = document.getElementById('loadsdkdefault');
+          
+          const initButton = document.getElementById('initsdk');
+          
+          const loadScopeButton = document.getElementById('loadsdkscope');
+          const loadSdkScopeBox = document.getElementById('loadsdkscopename');
+          
+          const moduleNameSelect = document.getElementById('createsdkmodulename');
+          const createModuleButton = document.getElementById('createsdkmodule');
+
+          const moduleContainer = document.getElementById('modulecontainer');
+
+          const doEnabling = () => {
+            loadButton.disabled = window.Indeed;
+            loadSdkUrlBox.disabled = window.Indeed;
+            initButton.disabled = !window.Indeed || !window.Indeed.init;
+            loadScopeButton.disabled = !initialized;
+            loadSdkScopeBox.disabled = !initialized;
+            moduleNameSelect.disabled = typeof window.sdkScopes === 'undefined';
+            createModuleButton.disabled = typeof window.sdkScopes === 'undefined';
+          };
+
+          loadSdkUrlBox.value = window.localStorage.getItem('loadsdkurl') ?? DEFAULT_SDK_URL;
+          loadSdkScopeBox.value = window.localStorage.getItem('loadsdkscopename') ?? DEFAULT_SDK_SCOPE;
+
+          loadButton.addEventListener('click', () => {
+            if (window.Indeed || document.getElementById('sdkinitscript')) {
+              alertStatus('SDK already initialized!');
+              return;
+            }
+            const scr = document.createElement('script');
+            scr.id = 'sdkinitscript';
+            scr.src = loadSdkUrlBox.value;
+            scr.onload = () => {
+              window.localStorage.setItem('loadsdkurl', loadSdkUrlBox.value);
+              alertStatus('SDK loaded.');
+              doEnabling();
+            };
+            alertStatus('SDK loading ...');
+            document.head.appendChild(scr);
+          });
+
+          loadDefaultButton.addEventListener('click', () => {
+            loadSdkUrlBox.value = window.localStorage.getItem('loadsdkurl') ?? DEFAULT_SDK_URL;
+            window.localStorage.removeItem('loadsdkurl');
+          });
+
+          initButton.addEventListener('click', async () => {
+            // TODO: auth options
+            if (!window.Indeed || !window.Indeed.init) {
+              alertStatus('Error: SDK is not initialized!');
+              return;
+            }
+            if (initialized) {
+              alertStatus('Error: SDK has already been initialized.');
+              return;
+            }
+
+            await window.Indeed.init();
+            initialized = true;
+            doEnabling();
+          });
+
+          loadScopeButton.addEventListener('click', async () => {
+            if (!initialized) {
+              alertStatus('Error: SDK is not initialized!');
+              return;
+            }
+            const scopeName = loadSdkScopeBox.value;
+            alertStatus('Loading scope ' + scopeName + ' ...');
+            const scope = await window.Indeed.elements.load(scopeName);
+            if (!scope) {
+              alertStatus('Scope ' + scopeName + ' load fail or empty.');
+              return;
+            }
+
+            if (typeof window.sdkScopes === 'undefined') {
+              window.sdkScopes = {};
+            }
+            window.sdkScopes[scopeName] = scope;
+            const modules = Object.keys(scope);
+            moduleNameSelect.innerHTML = '';
+            moduleNameSelect.appendChild(createOption('', '(choose a module)'));
+            for (let i = 0; i < modules.length; i++) {
+              moduleNameSelect.appendChild(createOption(modules[i]));
+            }
+            window.localStorage.setItem('loadsdkscopename', scopeName);
+            alertStatus('Scope ' + scopeName + ' loaded.');
+            doEnabling();
+          });
+
+          createModuleButton.addEventListener('click', async () => {
+            if (!initialized) {
+              alertStatus('Error: SDK is not initialized!');
+              return;
+            }
+            const scopeName = loadSdkScopeBox.value;
+            if (!scopeName || !window.sdkScopes || !window.sdkScopes[scopeName]) {
+              alertStatus('Error: Scope not found or not loaded');
+              return;
+            }
+
+            const moduleName = window.sdkScopes[scopeName];
+            if (!moduleName) {
+              alertStatus('Error: No module name selected');
+              return;
+            }
+
+            // TODO: module props
+            alertStatus('Mounting module ' + moduleName + ' ...');
+            moduleContainer.innerHTML = '';
+            const module = HelloSessionReplay.create(moduleName);
+            module.mount(moduleContainer);
+
+            alertStatus('Module ' + moduleName + ' mounted.');
+            doEnabling();
+          });
+        });
+      })();
+    </script>
+  </head>
+
+  <body>
+    <header>
+      <h1>dstepp's pretend ATS</h1>
+    </header>
+
+    <div id="alertstatus"></div>
+
+    <p>
+      This page doesn't auto-load the SDK.
+      You will need to load it yourself!
+    </p>
+
+    <hr />
+
+    <div>
+      <button id="loadsdk" disabled>Load SDK</button>
+      from
+      <input id="loadsdkurl" type="text" />
+      <button id="loadsdkdefault">Default</button>
+    </div>
+
+    <div>
+      <button id="initsdk" disabled>Init</button>
+    </div>
+
+    <div>
+      <button id="loadsdkscope" disabled>Load Scope</button>
+      named
+      <input id="loadsdkscopename" type="text" disabled />
+    </div>
+
+    <div>
+      modules:
+      <select id="createsdkmodulename" disabled>
+        <option value="">(no scope loaded)</option>
+      </select>
+      <button id="createsdkmodule">Create/Mount Module</button>
+    </div>
+
+    <hr />
+
+    <div id="modulecontainer"></div>
+
+    <hr />
+
+    <ul>
+      <li><a href="page2.html">Go to page 2</a></li>
+    </ul>
+  </body>
+</html>
