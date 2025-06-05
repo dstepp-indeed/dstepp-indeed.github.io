@@ -52,6 +52,9 @@
             loadSdkUrlBox.disabled = window.Indeed;
             initButton.disabled = !window.Indeed || !window.Indeed.init || initialized;
             initBackendUrlBox.disabled = !window.Indeed || !window.Indeed.init || initialized;
+            initBackendUrlDefaultButton.disabled = !window.Indeed || !window.Indeed.init || initialized;
+            initBackendUrlHoboButton.disabled = !window.Indeed || !window.Indeed.init || initialized;
+            initBackendUrlBranchButton.disabled = !window.Indeed || !window.Indeed.init || initialized;
             loadScopeButton.disabled = !initialized;
             loadSdkScopeBox.disabled = !initialized;
             moduleNameSelect.disabled = typeof window.sdkScopes === 'undefined';
@@ -110,7 +113,7 @@
             initBackendUrlBox.value = BACKEND_URL_HOBO_LOCAL;
         });
 
-        initBackendUrlDefaultButton.addEventListener('click', () => {
+        initBackendUrlBranchButton.addEventListener('click', () => {
             initBackendUrlBox.value = BACKEND_URL_BRANCH;
         });
 
