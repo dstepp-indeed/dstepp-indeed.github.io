@@ -7,6 +7,7 @@
     };
 
     const params = new URLSearchParams(location.search);
+    const autoload = params.get('auto') === 'true' || params.get('auto') === '1' || params.get('auto') === '';
     const DEFAULT_SDK_URL = params.get('loadsdkurl') || 'https://sdk.indeed.com/js/preview/sdk.js';
     const DEFAULT_SDK_URL_STABLE = params.get('loadsdkurl') || 'https://sdk.indeed.com/js/stable/sdk.js';
     const DEFAULT_SDK_BACKEND_URL = params.get('sdkbackendurl') ?? undefined;
@@ -20,10 +21,11 @@
         document.getElementById('alertstatus').innerHTML = message;
     };
 
-    const createOption = (value, text) => {
+    const createOption = (value, text, selected) => {
         const option = document.createElement('option');
         option.value = value;
         option.textContent = text || value;
+        option.selected = !!selected;
         return option;
     };
 
@@ -49,56 +51,40 @@
 
         const moduleContainer = document.getElementById('modulecontainer');
 
-        const doEnabling = () => {
-            loadButton.disabled = window.Indeed;
-            loadSdkUrlBox.disabled = window.Indeed;
-            initButton.disabled = !window.Indeed || !window.Indeed.init || initialized;
-            initBackendUrlBox.disabled = !window.Indeed || !window.Indeed.init || initialized;
-            initBackendUrlDefaultButton.disabled = !window.Indeed || !window.Indeed.init || initialized;
-            initBackendUrlHoboButton.disabled = !window.Indeed || !window.Indeed.init || initialized;
-            initBackendUrlBranchButton.disabled = !window.Indeed || !window.Indeed.init || initialized;
-            loadScopeButton.disabled = !initialized;
-            loadSdkScopeBox.disabled = !initialized;
-            moduleNameSelect.disabled = typeof window.sdkScopes === 'undefined';
-            createModuleButton.disabled = typeof window.sdkScopes === 'undefined' || !moduleNameSelect.value;
-        };
-
         loadSdkUrlBox.value = params.get('sdkurl') || window.localStorage.getItem(LOCAL_STORAGE.SDK_JS_URL) || DEFAULT_SDK_URL;
         loadSdkScopeBox.value = params.get('scope') || window.localStorage.getItem(LOCAL_STORAGE.SDK_SCOPE) || DEFAULT_SDK_SCOPE;
         initBackendUrlBox.value = params.get('') || window.localStorage.getItem(LOCAL_STORAGE.SDK_BACKEND_OVERRIDE) || '';
 
-        loadButton.addEventListener('click', () => {
+        // sdk control functions
+        const loadSdk = (sdkJsUrl, callback) => {
+            if (!sdkJsUrl) {
+                sdkJsUrl = loadSdkUrlBox.value;
+            }
             if (window.Indeed || document.getElementById('sdkinitscript')) {
                 alertStatus('SDK already initialized!');
                 return;
             }
             const scr = document.createElement('script');
             scr.id = 'sdkinitscript';
-            scr.src = loadSdkUrlBox.value;
+            scr.src = sdkJsUrl;
             scr.onload = () => {
-                window.localStorage.setItem(LOCAL_STORAGE.SDK_JS_URL, loadSdkUrlBox.value);
+                window.localStorage.setItem(LOCAL_STORAGE.SDK_JS_URL, sdkJsUrl);
                 alertStatus('SDK loaded.');
                 doEnabling();
+                if (callback) {
+                    callback();
+                }
             };
             scr.onerror = (e) => {
                 alertStatus('Error: SDK unable to load.');
                 console.error(e);
                 document.getElementById('sdkinitscript').remove();
-            }
+            };
             alertStatus('SDK loading ...');
             document.head.appendChild(scr);
-        });
+        };
 
-        loadDefaultButton.addEventListener('click', () => {
-            loadSdkUrlBox.value = window.localStorage.getItem(LOCAL_STORAGE.SDK_JS_URL) ?? DEFAULT_SDK_URL;
-            window.localStorage.removeItem(LOCAL_STORAGE.SDK_JS_URL);
-        });
-
-        loadStableButton.addEventListener('click', () => {
-            loadSdkUrlBox.value = window.localStorage.getItem(LOCAL_STORAGE.SDK_JS_URL) ?? DEFAULT_SDK_URL_STABLE;
-        });
-
-        initButton.addEventListener('click', async () => {
+        const initSdk = async (options) => {
             // TODO: auth options
             if (!window.Indeed || !window.Indeed.init) {
                 alertStatus('Error: SDK is not initialized!');
@@ -111,7 +97,7 @@
 
             alertStatus('Initializing SDK ...');
             try {
-                await window.Indeed.init();
+                await window.Indeed.init(options);
                 initialized = true;
                 alertStatus('SDK initialized.');
                 doEnabling();
@@ -119,26 +105,16 @@
                 alertStatus('Error: SDK unable to init: ' + String(e.message || e));
                 console.error(e);
             }
-        });
+        };
 
-        initBackendUrlDefaultButton.addEventListener('click', () => {
-            initBackendUrlBox.value = '';
-        });
-
-        initBackendUrlHoboButton.addEventListener('click', () => {
-            initBackendUrlBox.value = BACKEND_URL_HOBO_LOCAL;
-        });
-
-        initBackendUrlBranchButton.addEventListener('click', () => {
-            initBackendUrlBox.value = BACKEND_URL_BRANCH;
-        });
-
-        loadScopeButton.addEventListener('click', async () => {
+        const loadScope = async (scopeName) => {
             if (!initialized) {
                 alertStatus('Error: SDK is not initialized!');
                 return;
             }
-            const scopeName = loadSdkScopeBox.value;
+            if (!scopeName) {
+                scopeName = loadSdkScopeBox.value;
+            }
             alertStatus('Loading scope ' + scopeName + ' ...');
             try {
                 const scope = await window.Indeed.elements.load(scopeName);
@@ -155,7 +131,11 @@
                 moduleNameSelect.innerHTML = '';
                 moduleNameSelect.appendChild(createOption('', '(choose a module)'));
                 for (let i = 0; i < modules.length; i++) {
-                    moduleNameSelect.appendChild(createOption(modules[i]));
+                    moduleNameSelect.appendChild(createOption(
+                        modules[i],
+                        modules[i],
+                        modules[i] === DEFAULT_SDK_MODULE // selected
+                    ));
                 }
                 window.localStorage.setItem(LOCAL_STORAGE.SDK_SCOPE, scopeName);
                 alertStatus('Scope ' + scopeName + ' loaded.');
@@ -164,20 +144,25 @@
                 alertStatus(String(e.message || e));
                 console.error(e);
             }
-        });
+        };
 
-        createModuleButton.addEventListener('click', async () => {
+        const createAndMountModule = async (scopeName, moduleName, createOptions, mountOptions) => {
             if (!initialized) {
                 alertStatus('Error: SDK is not initialized!');
                 return;
             }
-            const scopeName = loadSdkScopeBox.value;
+
+            if (!scopeName) {
+                scopeName = loadSdkScopeBox.value;
+            }
             if (!scopeName || !window.sdkScopes || !window.sdkScopes[scopeName]) {
                 alertStatus('Error: Scope not found or not loaded');
                 return;
             }
 
-            const moduleName = moduleNameSelect.value;
+            if (!moduleName) {
+                moduleName = moduleNameSelect.value;
+            }
             if (!moduleName) {
                 alertStatus('Error: No module name selected');
                 return;
@@ -193,9 +178,9 @@
             alertStatus('Creating and mounting module ' + moduleName + ' ...');
             moduleContainer.innerHTML = '';
             try {
-                const module = moduleFactory.create(moduleName);
+                const module = moduleFactory.create(moduleName, createOptions);
 
-                module.mount(moduleContainer);
+                module.mount(moduleContainer, mountOptions);
 
                 alertStatus('Module ' + moduleName + ' mounted.');
                 doEnabling();
@@ -203,6 +188,60 @@
                 alertStatus('Error: SDK unable to create/mount: ' + String(e.message || e));
                 console.error(e);
             }
+        }
+
+        const doEnabling = () => {
+            loadButton.disabled = window.Indeed;
+            loadSdkUrlBox.disabled = window.Indeed;
+            initButton.disabled = !window.Indeed || !window.Indeed.init || initialized;
+            initBackendUrlBox.disabled = !window.Indeed || !window.Indeed.init || initialized;
+            initBackendUrlDefaultButton.disabled = !window.Indeed || !window.Indeed.init || initialized;
+            initBackendUrlHoboButton.disabled = !window.Indeed || !window.Indeed.init || initialized;
+            initBackendUrlBranchButton.disabled = !window.Indeed || !window.Indeed.init || initialized;
+            loadScopeButton.disabled = !initialized;
+            loadSdkScopeBox.disabled = !initialized;
+            moduleNameSelect.disabled = typeof window.sdkScopes === 'undefined';
+            createModuleButton.disabled = typeof window.sdkScopes === 'undefined' || !moduleNameSelect.value;
+        };
+
+        // event handlers
+        loadButton.addEventListener('click', () => {
+            loadSdk(loadSdkUrlBox.value);
         });
+        loadDefaultButton.addEventListener('click', () => {
+            loadSdkUrlBox.value = window.localStorage.getItem(LOCAL_STORAGE.SDK_JS_URL) ?? DEFAULT_SDK_URL;
+            window.localStorage.removeItem(LOCAL_STORAGE.SDK_JS_URL);
+        });
+        loadStableButton.addEventListener('click', () => {
+            loadSdkUrlBox.value = window.localStorage.getItem(LOCAL_STORAGE.SDK_JS_URL) ?? DEFAULT_SDK_URL_STABLE;
+        });
+        initButton.addEventListener('click', async () => {
+            await initSdk(); // TODO: options
+        });
+        initBackendUrlDefaultButton.addEventListener('click', () => {
+            initBackendUrlBox.value = '';
+        });
+        initBackendUrlHoboButton.addEventListener('click', () => {
+            initBackendUrlBox.value = BACKEND_URL_HOBO_LOCAL;
+        });
+        initBackendUrlBranchButton.addEventListener('click', () => {
+            initBackendUrlBox.value = BACKEND_URL_BRANCH;
+        });
+        loadScopeButton.addEventListener('click', async () => {
+            await loadScope(loadSdkScopeBox.value);
+        });
+        moduleNameSelect.addEventListener('change', doEnabling);
+        createModuleButton.addEventListener('click', async () => {
+            await createAndMountModule(loadSdkScopeBox.value, moduleNameSelect.value); // TODO: options
+        });
+
+        if (autoload) {
+            console.log('Autoloading the SDK ...');
+            loadSdk(null, async () => {
+                await initSdk();
+                await loadScope();
+                await createAndMountModule();
+            });
+        }
     });
 })();
