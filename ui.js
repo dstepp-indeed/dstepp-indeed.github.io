@@ -8,6 +8,7 @@
 
     const params = new URLSearchParams(location.search);
     const DEFAULT_SDK_URL = params.get('loadsdkurl') || 'https://sdk.indeed.com/js/preview/sdk.js';
+    const DEFAULT_SDK_URL_STABLE = params.get('loadsdkurl') || 'https://sdk.indeed.com/js/stable/sdk.js';
     const DEFAULT_SDK_BACKEND_URL = params.get('sdkbackendurl') ?? undefined;
     const DEFAULT_SDK_SCOPE = params.get('scope') || 'dstepp-backstage-test';
     const DEFAULT_SDK_MODULE = params.get('module') || 'HelloSdk'; // TODO
@@ -31,7 +32,8 @@
         
         const loadButton = document.getElementById('loadsdk');
         const loadSdkUrlBox = document.getElementById('loadsdkurl');
-        const loadDefaultButton = document.getElementById('loadsdkdefault');
+        const loadDefaultButton = document.getElementById('loadsdkpreview');
+        const loadStableButton = document.getElementById('loadsdkstable');
         
         const initButton = document.getElementById('initsdk');
         const initBackendUrlBox = document.getElementById('initsdkbackendurl');
@@ -79,9 +81,9 @@
                 doEnabling();
             };
             scr.onerror = (e) => {
-                alertStatus('Error: SDK unable to load: ' + String(e.message || e));
+                alertStatus('Error: SDK unable to load.');
                 console.error(e);
-                doEnabling();
+                document.getElementById('sdkinitscript').remove();
             }
             alertStatus('SDK loading ...');
             document.head.appendChild(scr);
@@ -90,6 +92,10 @@
         loadDefaultButton.addEventListener('click', () => {
             loadSdkUrlBox.value = window.localStorage.getItem(LOCAL_STORAGE.SDK_JS_URL) ?? DEFAULT_SDK_URL;
             window.localStorage.removeItem(LOCAL_STORAGE.SDK_JS_URL);
+        });
+
+        loadStableButton.addEventListener('click', () => {
+            loadSdkUrlBox.value = window.localStorage.getItem(LOCAL_STORAGE.SDK_JS_URL) ?? DEFAULT_SDK_URL_STABLE;
         });
 
         initButton.addEventListener('click', async () => {
