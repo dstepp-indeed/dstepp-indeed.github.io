@@ -14,7 +14,7 @@
         const DEFAULT_SDK_MODULE_PROPS = params.get('props') ?? undefined;
 
         const alertStatus = (message) => {
-          document.getElementById('alert').innerHTML = message;
+          document.getElementById('alertstatus').innerHTML = message;
         };
 
         const createOption = (value, text) => {
@@ -44,7 +44,7 @@
           const doEnabling = () => {
             loadButton.disabled = window.Indeed;
             loadSdkUrlBox.disabled = window.Indeed;
-            initButton.disabled = !window.Indeed || !window.Indeed.init;
+            initButton.disabled = !window.Indeed || !window.Indeed.init || initialized;
             loadScopeButton.disabled = !initialized;
             loadSdkScopeBox.disabled = !initialized;
             moduleNameSelect.disabled = typeof window.sdkScopes === 'undefined';
@@ -87,8 +87,10 @@
               return;
             }
 
+            alertStatus('Initializing SDK ...');
             await window.Indeed.init();
             initialized = true;
+            alertStatus('SDK initialized.');
             doEnabling();
           });
 
@@ -131,16 +133,23 @@
               return;
             }
 
-            const moduleName = window.sdkScopes[scopeName];
+            const moduleName = moduleNameSelect.value;
             if (!moduleName) {
               alertStatus('Error: No module name selected');
               return;
             }
 
+            const moduleFactory = window.sdkScopes[scopeName][moduleName];
+            if (!moduleFactory) {
+              alertStatus('Error: module ' + moduleName + ' not found or cannot be created.');
+              return;
+            }
+
             // TODO: module props
-            alertStatus('Mounting module ' + moduleName + ' ...');
+            alertStatus('Creating and mounting module ' + moduleName + ' ...');
             moduleContainer.innerHTML = '';
-            const module = HelloSessionReplay.create(moduleName);
+            const module = moduleFactory.create(moduleName);
+
             module.mount(moduleContainer);
 
             alertStatus('Module ' + moduleName + ' mounted.');
@@ -166,38 +175,35 @@
     <hr />
 
     <div>
-      <button id="loadsdk" disabled>Load SDK</button>
+      1)
+      <button id="loadsdk">Load SDK</button>
       from
-      <input id="loadsdkurl" type="text" />
+      <input id="loadsdkurl" type="text" size="48" />
       <button id="loadsdkdefault">Default</button>
     </div>
 
     <div>
-      <button id="initsdk" disabled>Init</button>
+      2)
+      <button id="initsdk" disabled>Init SDK</button>
     </div>
 
     <div>
+      3)
       <button id="loadsdkscope" disabled>Load Scope</button>
       named
       <input id="loadsdkscopename" type="text" disabled />
     </div>
 
     <div>
-      modules:
+      4)
+      <button id="createsdkmodule">Create/Mount Module</button>
       <select id="createsdkmodulename" disabled>
         <option value="">(no scope loaded)</option>
       </select>
-      <button id="createsdkmodule">Create/Mount Module</button>
     </div>
 
     <hr />
 
     <div id="modulecontainer"></div>
-
-    <hr />
-
-    <ul>
-      <li><a href="page2.html">Go to page 2</a></li>
-    </ul>
   </body>
 </html>
