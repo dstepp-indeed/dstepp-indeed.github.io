@@ -58,7 +58,7 @@
             loadScopeButton.disabled = !initialized;
             loadSdkScopeBox.disabled = !initialized;
             moduleNameSelect.disabled = typeof window.sdkScopes === 'undefined';
-            createModuleButton.disabled = typeof window.sdkScopes === 'undefined';
+            createModuleButton.disabled = typeof window.sdkScopes === 'undefined' || !moduleNameSelect.value;
         };
 
         loadSdkUrlBox.value = params.get('sdkurl') || window.localStorage.getItem(LOCAL_STORAGE.SDK_JS_URL) || DEFAULT_SDK_URL;
@@ -78,6 +78,11 @@
                 alertStatus('SDK loaded.');
                 doEnabling();
             };
+            scr.onerror = (e) => {
+                alertStatus('Error: SDK unable to load: ' + String(e.message || e));
+                console.error(e);
+                doEnabling();
+            }
             alertStatus('SDK loading ...');
             document.head.appendChild(scr);
         });
@@ -99,10 +104,15 @@
             }
 
             alertStatus('Initializing SDK ...');
-            await window.Indeed.init();
-            initialized = true;
-            alertStatus('SDK initialized.');
-            doEnabling();
+            try {
+                await window.Indeed.init();
+                initialized = true;
+                alertStatus('SDK initialized.');
+                doEnabling();
+            } catch (e) {
+                alertStatus('Error: SDK unable to init: ' + String(e.message || e));
+                console.error(e);
+            }
         });
 
         initBackendUrlDefaultButton.addEventListener('click', () => {
@@ -124,25 +134,30 @@
             }
             const scopeName = loadSdkScopeBox.value;
             alertStatus('Loading scope ' + scopeName + ' ...');
-            const scope = await window.Indeed.elements.load(scopeName);
-            if (!scope) {
-                alertStatus('Scope ' + scopeName + ' load fail or empty.');
-                return;
-            }
+            try {
+                const scope = await window.Indeed.elements.load(scopeName);
+                if (!scope) {
+                    alertStatus('Scope ' + scopeName + ' load fail or empty.');
+                    return;
+                }
 
-            if (typeof window.sdkScopes === 'undefined') {
-                window.sdkScopes = {};
+                if (typeof window.sdkScopes === 'undefined') {
+                    window.sdkScopes = {};
+                }
+                window.sdkScopes[scopeName] = scope;
+                const modules = Object.keys(scope);
+                moduleNameSelect.innerHTML = '';
+                moduleNameSelect.appendChild(createOption('', '(choose a module)'));
+                for (let i = 0; i < modules.length; i++) {
+                    moduleNameSelect.appendChild(createOption(modules[i]));
+                }
+                window.localStorage.setItem(LOCAL_STORAGE.SDK_SCOPE, scopeName);
+                alertStatus('Scope ' + scopeName + ' loaded.');
+                doEnabling();
+            } catch (e) {
+                alertStatus(String(e.message || e));
+                console.error(e);
             }
-            window.sdkScopes[scopeName] = scope;
-            const modules = Object.keys(scope);
-            moduleNameSelect.innerHTML = '';
-            moduleNameSelect.appendChild(createOption('', '(choose a module)'));
-            for (let i = 0; i < modules.length; i++) {
-                moduleNameSelect.appendChild(createOption(modules[i]));
-            }
-            window.localStorage.setItem(LOCAL_STORAGE.SDK_SCOPE, scopeName);
-            alertStatus('Scope ' + scopeName + ' loaded.');
-            doEnabling();
         });
 
         createModuleButton.addEventListener('click', async () => {
@@ -171,12 +186,17 @@
             // TODO: module props
             alertStatus('Creating and mounting module ' + moduleName + ' ...');
             moduleContainer.innerHTML = '';
-            const module = moduleFactory.create(moduleName);
+            try {
+                const module = moduleFactory.create(moduleName);
 
-            module.mount(moduleContainer);
+                module.mount(moduleContainer);
 
-            alertStatus('Module ' + moduleName + ' mounted.');
-            doEnabling();
+                alertStatus('Module ' + moduleName + ' mounted.');
+                doEnabling();
+            } catch (e) {
+                alertStatus('Error: SDK unable to create/mount: ' + String(e.message || e));
+                console.error(e);
+            }
         });
     });
 })();
