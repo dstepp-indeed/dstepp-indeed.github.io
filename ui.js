@@ -19,6 +19,9 @@
     const DEFAULT_SDK_URL = params.get(PARAMS.SDK_JS_URL) || 'https://sdk.indeed.com/js/preview/sdk.js';
     const DEFAULT_SDK_URL_STABLE = params.get(PARAMS.SDK_JS_URL) || 'https://sdk.indeed.com/js/stable/sdk.js';
     const DEFAULT_SDK_BACKEND_URL = params.get(PARAMS.SDK_BACKEND_OVERRIDE) ?? undefined;
+    if (DEFAULT_SDK_BACKEND_URL) {
+        window.localStorage.setItem(LOCAL_STORAGE.SDK_BACKEND_OVERRIDE, DEFAULT_SDK_BACKEND_URL);
+    }
     const DEFAULT_SDK_SCOPE = params.get(PARAMS.SCOPE) || 'dstepp-backstage-test';
     const DEFAULT_SDK_MODULE = params.get(PARAMS.MODULE) || 'HelloSdk'; // TODO
     const DEFAULT_SDK_MODULE_PROPS = params.get(PARAMS.PROPS) ?? undefined; // TODO
