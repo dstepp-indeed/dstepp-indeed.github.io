@@ -229,7 +229,7 @@
             }
             let url = new URL(location);
             url.params = params;
-            document.getElementById('shareurl').innerHTML = 'Share URL: ' + url.toString();
+            document.getElementById('shareurl').innerHTML = 'Share URL: <a target="_blank" href="' + url.toString() + '">' + url.toString() + "</a>";
         };
 
         // event handlers
