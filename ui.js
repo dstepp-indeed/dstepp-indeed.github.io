@@ -215,7 +215,7 @@
             if (loadSdkUrlBox.value && loadSdkUrlBox.value !== DEFAULT_SDK_URL) {
                 params.set(PARAMS.SDK_JS_URL, loadSdkUrlBox.value);
             }
-            if (initBackendUrlBox.value && initBackendUrlBox.value !== DEFAULT_SDK_BACKEND_URL) {
+            if (initBackendUrlBox.value) {
                 params.set(PARAMS.SDK_BACKEND_OVERRIDE, initBackendUrlBox.value);
             }
             if (loadSdkScopeBox.value) {
