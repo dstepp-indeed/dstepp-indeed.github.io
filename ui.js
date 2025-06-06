@@ -5,15 +5,23 @@
         SDK_MODULE: 'indeedSdkModule',
         SDK_SCOPE: 'indeedSdkScope'
     };
+    const PARAMS = {
+        SDK_JS_URL: 'sdkurl',
+        SDK_BACKEND_OVERRIDE: 'indeedsdkbackendoverride',
+        SCOPE: 'scope',
+        MODULE: 'module',
+        PROPS: 'props',
+        AUTO: 'auto'
+    }
 
     const params = new URLSearchParams(location.search);
-    const autoload = params.get('auto') === 'true' || params.get('auto') === '1' || params.get('auto') === '';
-    const DEFAULT_SDK_URL = params.get('loadsdkurl') || 'https://sdk.indeed.com/js/preview/sdk.js';
-    const DEFAULT_SDK_URL_STABLE = params.get('loadsdkurl') || 'https://sdk.indeed.com/js/stable/sdk.js';
-    const DEFAULT_SDK_BACKEND_URL = params.get('sdkbackendurl') ?? undefined;
-    const DEFAULT_SDK_SCOPE = params.get('scope') || 'dstepp-backstage-test';
-    const DEFAULT_SDK_MODULE = params.get('module') || 'HelloSdk'; // TODO
-    const DEFAULT_SDK_MODULE_PROPS = params.get('props') ?? undefined; // TODO
+    const autoload = params.get(PARAMS.AUTO) === 'true' || params.get('auto') === '1' || params.get('auto') === '';
+    const DEFAULT_SDK_URL = params.get(PARAMS.SDK_JS_URL) || 'https://sdk.indeed.com/js/preview/sdk.js';
+    const DEFAULT_SDK_URL_STABLE = params.get(PARAMS.SDK_JS_URL) || 'https://sdk.indeed.com/js/stable/sdk.js';
+    const DEFAULT_SDK_BACKEND_URL = params.get(PARAMS.SDK_BACKEND_OVERRIDE) ?? undefined;
+    const DEFAULT_SDK_SCOPE = params.get(PARAMS.SCOPE) || 'dstepp-backstage-test';
+    const DEFAULT_SDK_MODULE = params.get(PARAMS.MODULE) || 'HelloSdk'; // TODO
+    const DEFAULT_SDK_MODULE_PROPS = params.get(PARAMS.PROPS) ?? undefined; // TODO
     const BACKEND_URL_HOBO_LOCAL = 'https://one-host.hobo-local.qa.indeed.net/api';
     const BACKEND_URL_BRANCH = 'https://jira-USERNAME-onehost-XXXX-one-host-sdk.sandbox.qa.indeed.net/api';
 
@@ -51,9 +59,9 @@
 
         const moduleContainer = document.getElementById('modulecontainer');
 
-        loadSdkUrlBox.value = params.get('sdkurl') || window.localStorage.getItem(LOCAL_STORAGE.SDK_JS_URL) || DEFAULT_SDK_URL;
-        loadSdkScopeBox.value = params.get('scope') || window.localStorage.getItem(LOCAL_STORAGE.SDK_SCOPE) || DEFAULT_SDK_SCOPE;
-        initBackendUrlBox.value = params.get('') || window.localStorage.getItem(LOCAL_STORAGE.SDK_BACKEND_OVERRIDE) || '';
+        loadSdkUrlBox.value = params.get(PARAMS.SDK_JS_URL) || window.localStorage.getItem(LOCAL_STORAGE.SDK_JS_URL) || DEFAULT_SDK_URL;
+        loadSdkScopeBox.value = params.get(PARAMS.SCOPE) || window.localStorage.getItem(LOCAL_STORAGE.SDK_SCOPE) || DEFAULT_SDK_SCOPE;
+        initBackendUrlBox.value = DEFAULT_SDK_BACKEND_URL || window.localStorage.getItem(LOCAL_STORAGE.SDK_BACKEND_OVERRIDE) || '';
 
         // sdk control functions
         const loadSdk = (sdkJsUrl, callback) => {
@@ -202,6 +210,23 @@
             loadSdkScopeBox.disabled = !initialized;
             moduleNameSelect.disabled = typeof window.sdkScopes === 'undefined';
             createModuleButton.disabled = typeof window.sdkScopes === 'undefined' || !moduleNameSelect.value;
+
+            const params = new URLSearchParams();
+            if (loadSdkUrlBox.value && loadSdkUrlBox.value !== DEFAULT_SDK_URL) {
+                params.set(PARAMS.SDK_JS_URL, loadSdkUrlBox.value);
+            }
+            if (initBackendUrlBox.value && initBackendUrlBox.value !== DEFAULT_SDK_BACKEND_URL) {
+                params.set(PARAMS.SDK_BACKEND_OVERRIDE, initBackendUrlBox.value);
+            }
+            if (loadSdkScopeBox.value) {
+                params.set(PARAMS.SCOPE, loadSdkScopeBox.value);
+            }
+            if (moduleNameSelect.value) {
+                params.set(PARAMS.MODULE, moduleNameSelect.value);
+            }
+            let url = new URL(location);
+            url.params = params;
+            document.getElementById('shareurl').innerHTML = 'Share URL: ' + url.toString();
         };
 
         // event handlers
