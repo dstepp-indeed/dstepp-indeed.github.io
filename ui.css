@@ -1,4 +1,13 @@
+body, input, option, select, textarea {
+    font-family: 'Helvetica Neue', Helvetica, Arial, 'Liberation Sans', Roboto, Noto, sans-serif;
+}
+
 .initstages > div {
     margin-top: 0.3em;
     margin-bottom: 0.3em;
+}
+
+.initstages > div > button.stage {
+    display: inline-block;
+    width: 13em;
 }

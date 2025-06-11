@@ -16,18 +16,20 @@
     <section class="initstages">
       <div>
         1)
-        <button id="loadsdk">Load SDK</button>
+        <button id="loadsdk" class="stage">Load SDK</button>
         from
-        <input id="loadsdkurl" type="text" size="48" />
+        <input id="loadsdkurl" type="text" size="64" />
+        (bootstrap)
         <button id="loadsdkpreview">Preview</button>
         <button id="loadsdkstable">Stable</button>
       </div>
 
       <div>
         2)
-        <button id="initsdk" disabled>Init SDK</button>
-        with backend
-        <input id="initsdkbackendurl" type="text" size="48" placeholder="(default)" disabled />
+        <button id="initsdk" class="stage" disabled>Init SDK</button>
+        from
+        <input id="initsdkbackendurl" type="text" size="64" placeholder="(default)" disabled />
+        (backend)
         <button id="initsdkbackendurldefault">Default</button>
         <button id="initsdkbackendurlhobo">hobo-local</button>
         <button id="initsdkbackendurlbranch">branch</button>
@@ -35,14 +37,23 @@
 
       <div>
         3)
-        <button id="loadsdkscope" disabled>Load Scope</button>
-        named
-        <input id="loadsdkscopename" type="text" disabled />
+        <button id="loadsdkscope" class="stage" disabled>Load</button>
+        <span style="margin-right: 1em">
+          <label>
+            <input id="scopeorlibrary_scope" type="radio" name="scopeorlibrary" value="elements" disabled />
+            Elements
+          </label>
+          <label>
+            <input id="scopeorlibrary_library" type="radio" name="scopeorlibrary" value="library" disabled />
+            Library
+          </label>
+        </span>
+        <input id="loadsdkscopename" type="text" size="32" disabled />
       </div>
 
-      <div>
+      <div id="stagecreatemountmodule">
         4)
-        <button id="createsdkmodule" disabled>Create/Mount Module</button>
+        <button id="createsdkmodule" class="stage" disabled>Create/Mount Module</button>
         <select id="createsdkmodulename" disabled>
           <option value="">(no scope loaded)</option>
         </select>
