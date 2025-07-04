@@ -20,6 +20,7 @@
 
     const DEFAULT_SDK_URL = 'https://sdk.indeed.com/js/preview/sdk.js';
     const DEFAULT_SDK_URL_STABLE = 'https://sdk.indeed.com/js/stable/sdk.js';
+    const DEFAULT_SDK_URL_V03 = 'https://sdk.indeed.com/js/v0.3/sdk.js';
     const DEFAULT_SDK_BACKEND_URL = undefined;
     if (DEFAULT_SDK_BACKEND_URL) {
         window.localStorage.setItem(LOCAL_STORAGE.SDK_BACKEND_OVERRIDE, DEFAULT_SDK_BACKEND_URL);
@@ -49,6 +50,7 @@
         const loadSdkUrlBox = document.getElementById('loadsdkurl');
         const loadDefaultButton = document.getElementById('loadsdkpreview');
         const loadStableButton = document.getElementById('loadsdkstable');
+        const loadv3Button = document.getElementById('loadsdkv03');
         
         const initButton = document.getElementById('initsdk');
         const initBackendUrlBox = document.getElementById('initsdkbackendurl');
@@ -70,7 +72,7 @@
         loadSdkScopeBox.value = params.get(PARAMS.SCOPE) || window.localStorage.getItem(LOCAL_STORAGE.SDK_SCOPE) || DEFAULT_SDK_SCOPE;
         libraryRadio.checked = params.get(PARAMS.TYPE) === 'library';
         elementsRadio.checked = !libraryRadio.checked;
-        initBackendUrlBox.value = DEFAULT_SDK_BACKEND_URL || window.localStorage.getItem(LOCAL_STORAGE.SDK_BACKEND_OVERRIDE) || '';
+        initBackendUrlBox.value = params.get(PARAMS.SDK_BACKEND_OVERRIDE) || window.localStorage.getItem(LOCAL_STORAGE.SDK_BACKEND_OVERRIDE) || '';
 
         // sdk control functions
         const loadSdk = (sdkJsUrl, callback) => {
@@ -113,6 +115,13 @@
             }
 
             alertStatus('Initializing SDK ...');
+
+            if (initBackendUrlBox.value) {
+                window.localStorage.setItem(LOCAL_STORAGE.SDK_BACKEND_OVERRIDE, initBackendUrlBox.value);
+            } else {
+                window.localStorage.removeItem(LOCAL_STORAGE.SDK_BACKEND_OVERRIDE);
+            }
+
             try {
                 await window.Indeed.init(options);
                 initialized = true;
@@ -297,11 +306,16 @@
             loadSdk(loadSdkUrlBox.value);
         });
         loadDefaultButton.addEventListener('click', () => {
-            loadSdkUrlBox.value = window.localStorage.getItem(LOCAL_STORAGE.SDK_JS_URL) ?? DEFAULT_SDK_URL;
+            loadSdkUrlBox.value = DEFAULT_SDK_URL;
             window.localStorage.removeItem(LOCAL_STORAGE.SDK_JS_URL);
         });
         loadStableButton.addEventListener('click', () => {
-            loadSdkUrlBox.value = window.localStorage.getItem(LOCAL_STORAGE.SDK_JS_URL) ?? DEFAULT_SDK_URL_STABLE;
+            loadSdkUrlBox.value = DEFAULT_SDK_URL_STABLE;
+            window.localStorage.removeItem(LOCAL_STORAGE.SDK_JS_URL);
+        });
+        loadv3Button.addEventListener('click', () => {
+            loadSdkUrlBox.value = DEFAULT_SDK_URL_V03;
+            window.localStorage.removeItem(LOCAL_STORAGE.SDK_JS_URL);
         });
         initButton.addEventListener('click', async () => {
             await initSdk(); // TODO: options
