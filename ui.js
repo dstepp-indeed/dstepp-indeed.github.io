@@ -26,8 +26,10 @@
         window.localStorage.setItem(LOCAL_STORAGE.SDK_BACKEND_OVERRIDE, DEFAULT_SDK_BACKEND_URL);
     }
     const DEFAULT_SDK_SCOPE = 'dstepp-backstage-test';
+    const DEFAULT_SDK_LIBRARY_SCOPE = 'dstepp-sdk-library-backstage-2';
     const DEFAULT_SDK_MODULE = 'HelloSdk'; // TODO
     const DEFAULT_SDK_MODULE_PROPS = undefined; // TODO
+    const BACKEND_URL_HOBO_QA = 'https://one-platform-sdk.sandbox.qa.indeed.net/api';
     const BACKEND_URL_HOBO_LOCAL = 'https://one-host.hobo-local.qa.indeed.net/api';
     const BACKEND_URL_BRANCH = 'https://jira-USERNAME-onehost-XXXX-one-host-sdk.sandbox.qa.indeed.net/api';
 
@@ -55,6 +57,7 @@
         const initButton = document.getElementById('initsdk');
         const initBackendUrlBox = document.getElementById('initsdkbackendurl');
         const initBackendUrlDefaultButton = document.getElementById('initsdkbackendurldefault');
+        const initBackendUrlQaButton = document.getElementById('initsdkbackendurlqa');
         const initBackendUrlHoboButton = document.getElementById('initsdkbackendurlhobo');
         const initBackendUrlBranchButton = document.getElementById('initsdkbackendurlbranch');
         
@@ -69,8 +72,8 @@
         const moduleContainer = document.getElementById('modulecontainer');
 
         loadSdkUrlBox.value = params.get(PARAMS.SDK_JS_URL) || window.localStorage.getItem(LOCAL_STORAGE.SDK_JS_URL) || DEFAULT_SDK_URL;
-        loadSdkScopeBox.value = params.get(PARAMS.SCOPE) || window.localStorage.getItem(LOCAL_STORAGE.SDK_SCOPE) || DEFAULT_SDK_SCOPE;
         libraryRadio.checked = params.get(PARAMS.TYPE) === 'library';
+        loadSdkScopeBox.value = params.get(PARAMS.SCOPE) || window.localStorage.getItem(LOCAL_STORAGE.SDK_SCOPE) || (libraryRadio.checked ? DEFAULT_SDK_LIBRARY_SCOPE : DEFAULT_SDK_SCOPE);
         elementsRadio.checked = !libraryRadio.checked;
         initBackendUrlBox.value = params.get(PARAMS.SDK_BACKEND_OVERRIDE) || window.localStorage.getItem(LOCAL_STORAGE.SDK_BACKEND_OVERRIDE) || '';
 
@@ -286,6 +289,7 @@
             initButton.disabled = !window.Indeed || !window.Indeed.init || initialized;
             initBackendUrlBox.disabled = !window.Indeed || !window.Indeed.init || initialized;
             initBackendUrlDefaultButton.disabled = !window.Indeed || !window.Indeed.init || initialized;
+            initBackendUrlQaButton.disabled = !window.Indeed || !window.Indeed.init || initialized;
             initBackendUrlHoboButton.disabled = !window.Indeed || !window.Indeed.init || initialized;
             initBackendUrlBranchButton.disabled = !window.Indeed || !window.Indeed.init || initialized;
             loadScopeButton.disabled = !initialized;
@@ -322,6 +326,9 @@
         });
         initBackendUrlDefaultButton.addEventListener('click', () => {
             initBackendUrlBox.value = '';
+        });
+        initBackendUrlQaButton.addEventListener('click', () => {
+            initBackendUrlBox.value = BACKEND_URL_HOBO_QA;
         });
         initBackendUrlHoboButton.addEventListener('click', () => {
             initBackendUrlBox.value = BACKEND_URL_HOBO_LOCAL;
