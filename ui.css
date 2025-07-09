@@ -1,5 +1,6 @@
-body, input, option, select, textarea {
+body, button, input, option, select, textarea {
     font-family: 'Helvetica Neue', Helvetica, Arial, 'Liberation Sans', Roboto, Noto, sans-serif;
+    font-size: 10pt;
 }
 
 .initstages > div {
@@ -9,5 +10,20 @@ body, input, option, select, textarea {
 
 .initstages > div > button.stage {
     display: inline-block;
+    width: 13em;
+}
+
+.initstages > div > label {
+    display: inline-block;
+    min-width: 6.5em;
+}
+
+.initstages > div > label + input {
+    margin-left: 1pt;
+}
+
+.initstages .spacer {
+    display: inline-block;
+    visibility: hidden;
     width: 13em;
 }

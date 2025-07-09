@@ -38,18 +38,30 @@
       </div>
 
       <div>
+        <span style="visibility: hidden;">X)</span>
+        <span class="spacer"></span>
+        <label>
+          <input id="auth_cookie" type="radio" name="authtype" value="cookie" disabled />
+          Cookie
+        </label>
+        <label>
+          <input id="auth_oauth" type="radio" name="authtype" value="oauth" disabled />
+          OAuth
+        </label>
+        <input id="oauthaccesstoken" type="text" size="64" placeholder="(access token)" disabled/>
+      </div>
+
+      <div>
         3)
         <button id="loadsdkscope" class="stage" disabled>Load</button>
-        <span style="margin-right: 1em">
-          <label>
-            <input id="scopeorlibrary_scope" type="radio" name="scopeorlibrary" value="elements" disabled />
-            Elements
-          </label>
-          <label>
-            <input id="scopeorlibrary_library" type="radio" name="scopeorlibrary" value="library" disabled />
-            Library
-          </label>
-        </span>
+        <label>
+          <input id="scopeorlibrary_scope" type="radio" name="scopeorlibrary" value="elements" disabled />
+          Elements
+        </label>
+        <label>
+          <input id="scopeorlibrary_library" type="radio" name="scopeorlibrary" value="library" disabled />
+          Library
+        </label>
         <input id="loadsdkscopename" type="text" size="32" disabled />
       </div>
 

@@ -1,18 +1,20 @@
 (() => {
     const LOCAL_STORAGE = {
         SDK_BACKEND_OVERRIDE: 'indeedSdkBackendOverride',
+        SDK_CLIENT_KEY: 'indeedSdkClientKey',
         SDK_JS_URL: 'indeedSdkJsUrl',
         SDK_MODULE: 'indeedSdkModule',
         SDK_SCOPE: 'indeedSdkScope'
     };
     const PARAMS = {
+        AUTH_TYPE: 'auth',
+        AUTO: 'auto',
+        MODULE: 'module',
+        PROPS: 'props',
+        SCOPE: 'scope',
         SDK_JS_URL: 'sdkurl',
         SDK_BACKEND_OVERRIDE: 'indeedsdkbackendoverride',
-        SCOPE: 'scope',
-        MODULE: 'module',
-        TYPE: 'type',
-        PROPS: 'props',
-        AUTO: 'auto'
+        TYPE: 'type'
     }
 
     const params = new URLSearchParams(location.search);
@@ -61,6 +63,10 @@
         const initBackendUrlHoboButton = document.getElementById('initsdkbackendurlhobo');
         const initBackendUrlBranchButton = document.getElementById('initsdkbackendurlbranch');
         
+        const authCookieRadio = document.getElementById('auth_cookie');
+        const authOauthRadio = document.getElementById('auth_oauth');
+        const authOauthAccessTokenBox = document.getElementById('oauthaccesstoken');
+
         const loadScopeButton = document.getElementById('loadsdkscope');
         const elementsRadio = document.getElementById('scopeorlibrary_scope');
         const libraryRadio = document.getElementById('scopeorlibrary_library');
@@ -72,6 +78,8 @@
         const moduleContainer = document.getElementById('modulecontainer');
 
         loadSdkUrlBox.value = params.get(PARAMS.SDK_JS_URL) || window.localStorage.getItem(LOCAL_STORAGE.SDK_JS_URL) || DEFAULT_SDK_URL;
+        authCookieRadio.checked = params.get(PARAMS.AUTH_TYPE) !== 'oauth';
+        authOauthRadio.checked = params.get(PARAMS.AUTH_TYPE) === 'oauth';
         libraryRadio.checked = params.get(PARAMS.TYPE) === 'library';
         loadSdkScopeBox.value = params.get(PARAMS.SCOPE) || window.localStorage.getItem(LOCAL_STORAGE.SDK_SCOPE) || (libraryRadio.checked ? DEFAULT_SDK_LIBRARY_SCOPE : DEFAULT_SDK_SCOPE);
         elementsRadio.checked = !libraryRadio.checked;
@@ -123,6 +131,16 @@
                 window.localStorage.setItem(LOCAL_STORAGE.SDK_BACKEND_OVERRIDE, initBackendUrlBox.value);
             } else {
                 window.localStorage.removeItem(LOCAL_STORAGE.SDK_BACKEND_OVERRIDE);
+            }
+
+            if (authOauthRadio.checked && authOauthAccessTokenBox.value) {
+                options = {
+                    ...options,
+                    clientKey: window.localStorage.getItem(LOCAL_STORAGE.SDK_CLIENT_KEY) || 'dstepp-indeed.github.io',
+                    auth: {
+                        accessToken: authOauthAccessTokenBox.value
+                    }
+                };
             }
 
             try {
@@ -280,25 +298,34 @@
             if (moduleNameSelect.value) {
                 params.set(PARAMS.MODULE, moduleNameSelect.value);
             }
+            if (authOauthRadio.checked) {
+                params.set(PARAMS.AUTH_TYPE, 'oauth');
+            }
             return url.toString();
         };
 
         const doEnabling = () => {
-            loadButton.disabled = window.Indeed;
-            loadSdkUrlBox.disabled = window.Indeed;
-            initButton.disabled = !window.Indeed || !window.Indeed.init || initialized;
-            initBackendUrlBox.disabled = !window.Indeed || !window.Indeed.init || initialized;
-            initBackendUrlDefaultButton.disabled = !window.Indeed || !window.Indeed.init || initialized;
-            initBackendUrlQaButton.disabled = !window.Indeed || !window.Indeed.init || initialized;
-            initBackendUrlHoboButton.disabled = !window.Indeed || !window.Indeed.init || initialized;
-            initBackendUrlBranchButton.disabled = !window.Indeed || !window.Indeed.init || initialized;
+            const loaded = !!window.Indeed;
+            loadButton.disabled = loaded;
+            loadSdkUrlBox.disabled = loaded;
+
+            const initDisabled = !window.Indeed || !window.Indeed.init || initialized;
+            initButton.disabled = initDisabled;
+            initBackendUrlBox.disabled = initDisabled;
+            initBackendUrlDefaultButton.disabled = initDisabled;
+            initBackendUrlQaButton.disabled = initDisabled;
+            initBackendUrlHoboButton.disabled = initDisabled;
+            initBackendUrlBranchButton.disabled = initDisabled;
+            authCookieRadio.disabled = initDisabled;
+            authOauthRadio.disabled = initDisabled;
+            authOauthAccessTokenBox.disabled = initDisabled;
+
             loadScopeButton.disabled = !initialized;
             elementsRadio.disabled = !initialized;
             libraryRadio.disabled = !initialized;
             loadSdkScopeBox.disabled = !initialized;
             moduleNameSelect.disabled = typeof window.sdkScopes === 'undefined';
             createModuleButton.disabled = typeof window.sdkScopes === 'undefined' || !moduleNameSelect.value;
-            // document.getElementById('stagecreatemountmodule').style.visibility = libraryRadio.checked ? 'hidden' : 'visible';
             document.getElementById('stagecreatemountmodule').style.display = libraryRadio.checked ? 'none' : null;
 
             const shareUrl = buildShareUrl();
