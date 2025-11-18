@@ -4,7 +4,8 @@
         SDK_CLIENT_KEY: 'indeedSdkClientKey',
         SDK_JS_URL: 'indeedSdkJsUrl',
         SDK_MODULE: 'indeedSdkModule',
-        SDK_SCOPE: 'indeedSdkScope'
+        SDK_SCOPE: 'indeedSdkScope',
+        SDK_SCOPE_BRANCH: 'indeedSdkScopeBranch',
     };
     const PARAMS = {
         AUTH_TYPE: 'auth',
@@ -12,6 +13,7 @@
         MODULE: 'module',
         PROPS: 'props',
         SCOPE: 'scope',
+        SCOPE_BRANCH: 'scopebranch',
         SDK_JS_URL: 'sdkurl',
         SDK_BACKEND_OVERRIDE: 'indeedsdkbackendoverride',
         TYPE: 'type'
@@ -35,8 +37,9 @@
     const BACKEND_URL_HOBO_LOCAL = 'https://one-host.hobo-local.qa.indeed.net/api';
     const BACKEND_URL_BRANCH = 'https://jira-USERNAME-onehost-XXXX-one-host-sdk.sandbox.qa.indeed.net/api';
 
-    const alertStatus = (message) => {
+    const alertStatus = (message, type) => {
         document.getElementById('alertstatus').innerHTML = message;
+        document.getElementById('alertstatus').className = `alertstatus${type ?? ''}`;
     };
 
     const createOption = (value, text, selected) => {
@@ -71,6 +74,9 @@
         const elementsRadio = document.getElementById('scopeorlibrary_scope');
         const libraryRadio = document.getElementById('scopeorlibrary_library');
         const loadSdkScopeBox = document.getElementById('loadsdkscopename');
+        const scopeOrLibraryBranchPrimaryRadio = document.getElementById('scopeorlibrarybranch_primary');
+        const scopeOrLibraryBranchBranchRadio = document.getElementById('scopeorlibrarybranch_branch');
+        const scopeOrLibraryBranchBranchNameBox = document.getElementById('scopeorlibrarybranch_branch_name');
         
         const moduleNameSelect = document.getElementById('createsdkmodulename');
         const createModuleButton = document.getElementById('createsdkmodule');
@@ -82,6 +88,14 @@
         authOauthRadio.checked = params.get(PARAMS.AUTH_TYPE) === 'oauth';
         libraryRadio.checked = params.get(PARAMS.TYPE) === 'library';
         loadSdkScopeBox.value = params.get(PARAMS.SCOPE) || window.localStorage.getItem(LOCAL_STORAGE.SDK_SCOPE) || (libraryRadio.checked ? DEFAULT_SDK_LIBRARY_SCOPE : DEFAULT_SDK_SCOPE);
+        scopeOrLibraryBranchBranchRadio.checked = params.get(PARAMS.SCOPE_BRANCH) && params.get(PARAMS.SCOPE_BRANCH) !== 'primary';
+        scopeOrLibraryBranchPrimaryRadio.checked = !scopeOrLibraryBranchBranchRadio.checked;
+        scopeOrLibraryBranchBranchNameBox.value = params.get(PARAMS.SCOPE_BRANCH) || window.localStorage.getItem(LOCAL_STORAGE.SDK_SCOPE_BRANCH) || '';
+        scopeOrLibraryBranchBranchNameBox.onkeyup = (e) => {
+            if (scopeOrLibraryBranchBranchNameBox.value) {
+                scopeOrLibraryBranchBranchRadio.checked = true;
+            }
+        };
         elementsRadio.checked = !libraryRadio.checked;
         initBackendUrlBox.value = params.get(PARAMS.SDK_BACKEND_OVERRIDE) || window.localStorage.getItem(LOCAL_STORAGE.SDK_BACKEND_OVERRIDE) || '';
 
@@ -91,7 +105,7 @@
                 sdkJsUrl = loadSdkUrlBox.value;
             }
             if (window.Indeed || document.getElementById('sdkinitscript')) {
-                alertStatus('SDK already initialized!');
+                alertStatus('SDK already initialized!', 'warn');
                 return;
             }
             const scr = document.createElement('script');
@@ -99,18 +113,18 @@
             scr.src = sdkJsUrl;
             scr.onload = () => {
                 window.localStorage.setItem(LOCAL_STORAGE.SDK_JS_URL, sdkJsUrl);
-                alertStatus('SDK loaded.');
+                alertStatus('SDK loaded.', 'success');
                 doEnabling();
                 if (callback) {
                     callback();
                 }
             };
             scr.onerror = (e) => {
-                alertStatus('Error: SDK unable to load.');
+                alertStatus('Error: SDK unable to load.', 'error');
                 console.error(e);
                 document.getElementById('sdkinitscript').remove();
             };
-            alertStatus('SDK loading ...');
+            alertStatus('SDK loading ...', 'info');
             document.head.appendChild(scr);
         };
 
@@ -121,11 +135,11 @@
                 return;
             }
             if (initialized) {
-                alertStatus('Error: SDK has already been initialized.');
+                alertStatus('Error: SDK has already been initialized.', 'error');
                 return;
             }
 
-            alertStatus('Initializing SDK ...');
+            alertStatus('Initializing SDK ...', 'info');
 
             if (initBackendUrlBox.value) {
                 window.localStorage.setItem(LOCAL_STORAGE.SDK_BACKEND_OVERRIDE, initBackendUrlBox.value);
@@ -146,17 +160,17 @@
             try {
                 await window.Indeed.init(options);
                 initialized = true;
-                alertStatus('SDK initialized.');
+                alertStatus('SDK initialized.', 'success');
                 doEnabling();
             } catch (e) {
-                alertStatus('Error: SDK unable to init: ' + String(e.message || e));
+                alertStatus('Error: SDK unable to init: ' + String(e.message || e), 'error');
                 console.error(e);
             }
         };
 
         const loadScopeOrLibrary = async (scopeName, loadType) => {
             if (!initialized) {
-                alertStatus('Error: SDK is not initialized!');
+                alertStatus('Error: SDK is not initialized!', 'warn');
                 return;
             }
             if (!scopeName) {
@@ -169,6 +183,16 @@
                 const tokens = scopeName.split(/:/g);
                 scopeName = tokens[0];
                 branch = tokens[1];
+            } else {
+                // check primary/branch radios to let user input branch
+                if (scopeOrLibraryBranchBranchRadio.checked) {
+                    branch = scopeOrLibraryBranchBranchNameBox.value.trim();
+                }
+            }
+
+            // convert branch string to path name, e.g. 'jira/ksmith12/ONEHOST-456' => 'jira-ksmith12-onehost-456'
+            if (branch) {
+                branch = branch.toLowerCase?.().replaceAll('/', '-');
             }
 
             // check whether loading a scope of elements or a procedural JS library
@@ -176,14 +200,14 @@
                 loadType = libraryRadio.checked ? 'library' : 'scope';
             }
 
-            alertStatus(`Loading ${loadType} ${scopeName} ...`);
+            alertStatus(`Loading ${loadType} ${scopeName} ...`, 'info');
 
             try {
-                const options = branch ? { branch } : undefined;
+                const options = branch && branch !== 'primary' ? { branch, stagingLevel: 'qa' } : undefined;
                 if (loadType === 'library') {
                     const lib = await window.Indeed.library.load(scopeName, options);
                     if (!lib) {
-                        alertStatus(`Library ${scopeName} load fail or empty.`);
+                        alertStatus(`Library ${scopeName} load fail or empty.`, 'error');
                         return;
                     }
 
@@ -196,14 +220,14 @@
                     const POLLUTE_GLOBAL_OBJECT = true;
                     if (POLLUTE_GLOBAL_OBJECT) {
                         Object.assign(window, lib);
-                        alertStatus(`Library ${scopeName} loaded globally. [${Object.keys(lib)}]`);
+                        alertStatus(`Library ${scopeName} loaded globally. [${Object.keys(lib)}]`, 'success');
                     } else {
-                        alertStatus(`Library ${scopeName} loaded into window.sdkLibraries['${scopeName}']. [${Object.keys(lib)}]`);
+                        alertStatus(`Library ${scopeName} loaded into window.sdkLibraries['${scopeName}']. [${Object.keys(lib)}]`, 'success');
                     }
                 } else {
                     const scope = await window.Indeed.elements.load(scopeName);
                     if (!scope) {
-                        alertStatus('Scope ' + scopeName + ' load fail or empty.');
+                        alertStatus('Scope ' + scopeName + ' load fail or empty.', 'error');
                         return;
                     }
 
@@ -222,19 +246,19 @@
                         ));
                     }
                     window.localStorage.setItem(LOCAL_STORAGE.SDK_SCOPE, scopeName);
-                    alertStatus(`Scope ${scopeName} loaded.`);
+                    alertStatus(`Scope ${scopeName} loaded.`, 'success');
                 }
 
                 doEnabling();
             } catch (e) {
-                alertStatus(String(e.message || e));
+                alertStatus(String(e.message || e), 'error');
                 console.error(e);
             }
         };
 
         const createAndMountModule = async (scopeName, moduleName, createOptions, mountOptions) => {
             if (!initialized) {
-                alertStatus('Error: SDK is not initialized!');
+                alertStatus('Error: SDK is not initialized!', 'warn');
                 return;
             }
 
@@ -246,7 +270,7 @@
                 scopeName = loadSdkScopeBox.value;
             }
             if (!scopeName || !window.sdkScopes || !window.sdkScopes[scopeName]) {
-                alertStatus('Error: Scope not found or not loaded');
+                alertStatus('Error: Scope not found or not loaded', 'error');
                 return;
             }
 
@@ -254,28 +278,28 @@
                 moduleName = moduleNameSelect.value;
             }
             if (!moduleName) {
-                alertStatus('Error: No module name selected');
+                alertStatus('Error: No module name selected', 'warn');
                 return;
             }
 
             const moduleFactory = window.sdkScopes[scopeName][moduleName];
             if (!moduleFactory) {
-                alertStatus('Error: module ' + moduleName + ' not found or cannot be created.');
+                alertStatus('Error: module ' + moduleName + ' not found or cannot be created.', 'error');
                 return;
             }
 
             // TODO: module props
-            alertStatus('Creating and mounting module ' + moduleName + ' ...');
+            alertStatus('Creating and mounting module ' + moduleName + ' ...', 'info');
             moduleContainer.innerHTML = '';
             try {
                 const module = moduleFactory.create(moduleName, createOptions);
 
                 module.mount(moduleContainer, mountOptions);
 
-                alertStatus('Module ' + moduleName + ' mounted.');
+                alertStatus('Module ' + moduleName + ' mounted.', 'success');
                 doEnabling();
             } catch (e) {
-                alertStatus('Error: SDK unable to create/mount: ' + String(e.message || e));
+                alertStatus('Error: SDK unable to create/mount: ' + String(e.message || e), 'error');
                 console.error(e);
             }
         }
@@ -324,6 +348,9 @@
             elementsRadio.disabled = !initialized;
             libraryRadio.disabled = !initialized;
             loadSdkScopeBox.disabled = !initialized;
+            scopeOrLibraryBranchBranchRadio.disabled = !initialized;
+            scopeOrLibraryBranchPrimaryRadio.disabled = !initialized;
+            scopeOrLibraryBranchBranchNameBox.disabled = !initialized;
             moduleNameSelect.disabled = typeof window.sdkScopes === 'undefined';
             createModuleButton.disabled = typeof window.sdkScopes === 'undefined' || !moduleNameSelect.value;
             document.getElementById('stagecreatemountmodule').style.display = libraryRadio.checked ? 'none' : null;

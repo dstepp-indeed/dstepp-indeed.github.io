@@ -3,6 +3,21 @@ body, button, input, option, select, textarea {
     font-size: 10pt;
 }
 
+.alertstatuserror {
+    background-color: #fdd;
+    color: #700;
+}
+
+.alertstatussuccess {
+    background-color: #efe;
+    color: #060;
+}
+
+.alertstatuswarn {
+    background-color: #eea;
+    color: #990;
+}
+
 .initstages > div {
     margin-top: 0.3em;
     margin-bottom: 0.3em;
@@ -26,4 +41,8 @@ body, button, input, option, select, textarea {
     display: inline-block;
     visibility: hidden;
     width: 13em;
+}
+
+.scopeorlibrarybrancharea {
+    margin-left: 1em;
 }
