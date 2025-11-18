@@ -201,6 +201,8 @@
             }
 
             alertStatus(`Loading ${loadType} ${scopeName} ...`, 'info');
+            const shareUrl = buildShareUrl();
+            document.getElementById('shareurl').innerHTML = 'Share URL: <a target="_blank" href="' + shareUrl + '">' + shareUrl + "</a>";
 
             try {
                 const options = branch && branch !== 'primary' ? { branch, stagingLevel: 'qa' } : undefined;
@@ -321,6 +323,10 @@
             }
             if (moduleNameSelect.value) {
                 params.set(PARAMS.MODULE, moduleNameSelect.value);
+            }
+            console.debug('buildShareUrl:', scopeOrLibraryBranchBranchRadio.checked);
+            if (scopeOrLibraryBranchBranchRadio.checked) {
+                params.set(PARAMS.SCOPE_BRANCH, scopeOrLibraryBranchBranchNameBox.value);
             }
             if (authOauthRadio.checked) {
                 params.set(PARAMS.AUTH_TYPE, 'oauth');
